@@ -1,25 +1,20 @@
 TOP_DIR = ../..
+
+include $(TOP_DIR)/tools/Makefile.common
+
 DEPLOY_RUNTIME ?= /kb/runtime
 TARGET ?= /kb/deployment
 SERVICE_SPEC = KmerAnnotationByFigfam.spec
 SERVICE_NAME = KmerAnnotationByFigfam
+SERVICE_PORT = 7105
 
-#include $(TOP_DIR)/tools/Makefile.common
+SERVICE_DIR = kmer_annotation_by_figfam
+SERVICE_SUBDIRS = webroot
 
-# to wrap scripts and deploy them to $(TARGET)/bin using tools in
-# the dev_container. right now, these vars are defined in
-# Makefile.common, so it's redundant here.
-TOOLS_DIR = $(TOP_DIR)/tools
-WRAP_PERL_TOOL = wrap_perl
-WRAP_PERL_SCRIPT = bash $(TOOLS_DIR)/$(WRAP_PERL_TOOL).sh
-SRC_PERL = $(wildcard scripts/*.pl)
-
-# You can change these if you are putting your tests somewhere
-# else or if you are not using the standard .t suffix
-CLIENT_TESTS = $(wildcard client-tests/*.t)
-SCRIPTS_TESTS = $(wildcard script-tests/*.t)
-SERVER_TESTS = $(wildcard server-tests/*.t)
-
+TPAGE_ARGS = --define kb_top=$(TARGET) --define kb_runtime=$(DEPLOY_RUNTIME) --define kb_service_name=$(SERVICE_NAME) \
+	--define kb_service_port=$(SERVICE_PORT) --define kb_service_dir=$(SERVICE_DIR) \
+	--define kb_sphinx_port=$(SPHINX_PORT) --define kb_sphinx_host=$(SPHINX_HOST) \
+	--define kb_psgi=$(SERVICE_NAME).psgi
 
 default:
 
@@ -101,17 +96,26 @@ deploy-all: deploy-client deploy-service
 
 deploy-client: deploy-libs deploy-scripts deploy-docs
 
-deploy-libs: build-libs
-	rsync --exclude '*.bak*' -arv lib/. $(TARGET)/lib/.
+deploy-service: deploy-dir
+	$(TPAGE) $(TPAGE_ARGS) service/start_service.tt > $(TARGET)/services/$(SERVICE_DIR)/start_service
+	chmod +x $(TARGET)/services/$(SERVICE_DIR)/start_service
+	$(TPAGE) $(TPAGE_ARGS) service/stop_service.tt > $(TARGET)/services/$(SERVICE_DIR)/stop_service
+	chmod +x $(TARGET)/services/$(SERVICE_DIR)/stop_service
 
-
-deploy-service:
+deploy-dir:
+	if [ ! -d $(TARGET)/services/$(SERVICE_DIR) ] ; then mkdir $(TARGET)/services/$(SERVICE_DIR) ; fi
+	if [ "$(SERVICE_SUBDIRS)" != "" ] ; then \
+		for dir in $(SERVICE_SUBDIRS) ; do \
+		    	if [ ! -d $(TARGET)/services/$(SERVICE_DIR)/$$dir ] ; then mkdir -p $(TARGET)/services/$(SERVICE_DIR)/$$dir ; fi \
+		done;  \
+	fi
 
 deploy-docs: build-docs
 	-mkdir -p $(TARGET)/services/$(SERVICE_NAME)/webroot/.
 	cp docs/*.html $(TARGET)/services/$(SERVICE_NAME)/webroot/.
 
 build-docs: compile-docs
+	-mkdir -p docs
 	pod2html --infile=lib/Bio/KBase/$(SERVICE_NAME)/Client.pm --outfile=docs/$(SERVICE_NAME).html
 
 compile-docs: build-libs
@@ -126,3 +130,6 @@ build-libs:
 		--js javascript/$(SERVICE_NAME)/Client \
 		--scripts scripts \
 		$(SERVICE_SPEC) lib
+
+include $(TOP_DIR)/tools/Makefile.common.rules
+
