@@ -7,16 +7,28 @@ TARGET ?= /kb/deployment
 SERVICE_SPEC = KmerAnnotationByFigfam.spec
 SERVICE_NAME = KmerAnnotationByFigfam
 SERVICE_PORT = 7105
+SERVICE_URL = http://localhost:$(SERVICE_PORT)
 
 SERVICE_DIR = kmer_annotation_by_figfam
-SERVICE_SUBDIRS = webroot
+SERVICE_SUBDIRS = webroot bin
+
+SRC_SERVICE_PERL = $(wildcard service-scripts/*.pl)
+BIN_SERVICE_PERL = $(addprefix $(BIN_DIR)/,$(basename $(notdir $(SRC_SERVICE_PERL))))
+DEPLOY_SERVICE_PERL = $(addprefix $(TARGET)/bin/,$(basename $(notdir $(SRC_SERVICE_PERL))))
+
+STARMAN_WORKERS = 8
+STARMAN_MAX_REQUESTS = 100
 
 TPAGE_ARGS = --define kb_top=$(TARGET) --define kb_runtime=$(DEPLOY_RUNTIME) --define kb_service_name=$(SERVICE_NAME) \
 	--define kb_service_port=$(SERVICE_PORT) --define kb_service_dir=$(SERVICE_DIR) \
 	--define kb_sphinx_port=$(SPHINX_PORT) --define kb_sphinx_host=$(SPHINX_HOST) \
-	--define kb_psgi=$(SERVICE_NAME).psgi
+	--define kb_psgi=$(SERVICE_NAME).psgi \
+	--define kb_starman_workers=$(STARMAN_WORKERS) \
+	--define kb_starman_max_requests=$(STARMAN_MAX_REQUESTS)
 
-default:
+default: bin
+
+bin: build-libs $(BIN_PERL)
 
 dist: 
 
@@ -96,11 +108,25 @@ deploy-all: deploy-client deploy-service
 
 deploy-client: deploy-libs deploy-scripts deploy-docs
 
-deploy-service: deploy-dir
+deploy-service: deploy-libs deploy-dir deploy-service-scripts
 	$(TPAGE) $(TPAGE_ARGS) service/start_service.tt > $(TARGET)/services/$(SERVICE_DIR)/start_service
 	chmod +x $(TARGET)/services/$(SERVICE_DIR)/start_service
 	$(TPAGE) $(TPAGE_ARGS) service/stop_service.tt > $(TARGET)/services/$(SERVICE_DIR)/stop_service
 	chmod +x $(TARGET)/services/$(SERVICE_DIR)/stop_service
+
+deploy-service-scripts:
+	export KB_TOP=$(TARGET); \
+	export KB_RUNTIME=$(DEPLOY_RUNTIME); \
+	export KB_PERL_PATH=$(TARGET)/lib ; \
+	export KB_DEPLOYMENT_CONFIG=$(TARGET)/deployment.cfg; \
+	export WRAP_VARIABLES=KB_DEPLOYMENT_CONFIG; \
+	for src in $(SRC_SERVICE_PERL) ; do \
+		basefile=`basename $$src`; \
+		base=`basename $$src .pl`; \
+		echo install $$src $$base ; \
+		cp $$src $(TARGET)/plbin ; \
+		$(WRAP_PERL_SCRIPT) "$(TARGET)/plbin/$$basefile" $(TARGET)/services/$(SERVICE_DIR)/bin/$$base ; \
+	done
 
 deploy-dir:
 	if [ ! -d $(TARGET)/services/$(SERVICE_DIR) ] ; then mkdir $(TARGET)/services/$(SERVICE_DIR) ; fi
@@ -120,7 +146,7 @@ build-docs: compile-docs
 
 compile-docs: build-libs
 
-build-libs:
+build-libs: Makefile
 	compile_typespec \
 		--psgi $(SERVICE_NAME).psgi \
 		--impl Bio::KBase::$(SERVICE_NAME)::$(SERVICE_NAME)Impl \
@@ -129,6 +155,7 @@ build-libs:
 		--py biokbase/$(SERVICE_NAME)/Client \
 		--js javascript/$(SERVICE_NAME)/Client \
 		--scripts scripts \
+		--url $(SERVICE_URL) \
 		$(SERVICE_SPEC) lib
 
 include $(TOP_DIR)/tools/Makefile.common.rules

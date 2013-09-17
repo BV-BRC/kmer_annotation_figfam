@@ -27,6 +27,10 @@ sub new
 {
     my($class, $url, @args) = @_;
     
+    if (!defined($url))
+    {
+	$url = 'http://localhost:7105';
+    }
 
     my $self = {
 	client => Bio::KBase::KmerAnnotationByFigfam::Client::RpcClient->new,
