@@ -9,12 +9,14 @@ use Proc::ParallelLoop;
 my $url;
 my $port;
 my $parallel = 1;
+my $output_dir;
 
-my $usage = "Usage: kmer-figfams-reannotate-genomes [--parallel N] [--port port] [--url url] < list-of-genome-ids \n";
+my $usage = "Usage: kmer-figfams-reannotate-genomes [--output-dir dir] [--parallel N] [--port port] [--url url] < list-of-genome-ids \n";
 
 my $rc = GetOptions("port=s" => \$port,
 		    "url=s"  => \$url,
 		    "parallel=s" => \$parallel,
+		    "output-dir=s" => \$output_dir,
 		    );
 
 if (!$rc || @ARGV != 0)
@@ -61,35 +63,46 @@ sub process_genome
 	detailed => 0,
     };
 
+    my $fh;
+
+    if ($output_dir)
+    {
+	open($fh, ">", "$output_dir/$gid") or die "Cannot open $output_dir/$gid: $!";
+    }
+    else
+    {
+	$fh = \*STDOUT;
+    }
+
     for my $fid (@$fids)
     {
 	push(@input, [$fid, $prots->{$fid}]);
 	$size += length($prots->{$fid});
 	if ($size > $max_size)
 	{
-	    process_proteins($kmer_client, $params,\@input);
+	    process_proteins($kmer_client, $params,\@input, $fh);
 	    @input = ();
 	    $size = 0;
 	}
     }
     if (@input)
     {
-	process_proteins($kmer_client, $params, \@input);
+	process_proteins($kmer_client, $params, \@input, $fh);
     }
 }
 
 sub process_proteins
 {
-    my($client, $params, $input) = @_;
+    my($client, $params, $input, $output_fh) = @_;
     my $res = $client->annotate_proteins($input, $params);
 
     for my $ent (@$res)
     {
 	my $details = $ent->[6];
-	print join("\t", @$ent[0..5]), "\n";
+	print $output_fh join("\t", @$ent[0..5]), "\n";
 	if (ref($details))
 	{
-	    print join("\t", '', @$_), "\n" foreach @$details;
+	    print $output_fh join("\t", '', @$_), "\n" foreach @$details;
 	}
     }
 }
