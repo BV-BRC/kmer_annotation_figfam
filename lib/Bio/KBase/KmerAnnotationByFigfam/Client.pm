@@ -29,7 +29,7 @@ sub new
     
     if (!defined($url))
     {
-	$url = 'http://localhost:7105';
+	$url = 'http://10.0.16.184:7105';
     }
 
     my $self = {

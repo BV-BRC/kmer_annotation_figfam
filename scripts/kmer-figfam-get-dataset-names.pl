@@ -22,10 +22,6 @@ if (!$url)
     {
 	$url = "http://localhost:$port/";
     }
-    else
-    {
-	die "No URL or port specified\n";
-    }
 }
 my $client = Bio::KBase::KmerAnnotationByFigfam::Client->new($url);
 

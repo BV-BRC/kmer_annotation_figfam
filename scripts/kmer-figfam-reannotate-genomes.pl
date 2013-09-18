@@ -37,7 +37,7 @@ pareach \@work, sub {
     my $gid = shift;
 
     my $client = Bio::KBase::KmerAnnotationByFigfam::Client->new($url);
-    my $cdm = Bio::KBase::CDMI::Client->new('http://kbase.us/services/cdmi_api');
+    my $cdm = Bio::KBase::CDMI::Client->new();
 
     process_genome($gid, $client, $cdm);
 
@@ -49,8 +49,10 @@ sub process_genome
     my($gid, $kmer_client, $cdm) = @_;
 
     my $fids = $cdm->genomes_to_fids([$gid], ['peg', 'CDS']);
+print Dumper($fids);
     $fids = $fids->{$gid};
     my $prots = $cdm->fids_to_protein_sequences($fids);
+print Dumper($fids, $prots);
 
     my $max_size = 1_000_000;
     my $size = 0;

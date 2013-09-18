@@ -7,7 +7,7 @@ TARGET ?= /kb/deployment
 SERVICE_SPEC = KmerAnnotationByFigfam.spec
 SERVICE_NAME = KmerAnnotationByFigfam
 SERVICE_PORT = 7105
-SERVICE_URL = http://localhost:$(SERVICE_PORT)
+SERVICE_URL = http://10.0.16.184:$(SERVICE_PORT)
 
 SERVICE_DIR = kmer_annotation_by_figfam
 SERVICE_SUBDIRS = webroot bin
