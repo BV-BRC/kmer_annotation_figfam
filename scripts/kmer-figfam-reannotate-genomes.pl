@@ -49,12 +49,10 @@ sub process_genome
     my($gid, $kmer_client, $cdm) = @_;
 
     my $fids = $cdm->genomes_to_fids([$gid], ['peg', 'CDS']);
-print Dumper($fids);
     $fids = $fids->{$gid};
     my $prots = $cdm->fids_to_protein_sequences($fids);
-print Dumper($fids, $prots);
 
-    my $max_size = 1_000_000;
+    my $max_size = 10_000_000;
     my $size = 0;
     my @input;
 
