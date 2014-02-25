@@ -12,6 +12,8 @@ module KmerAnnotationByFigfam {
 	int hit_threshold;
 	int sequential_hit_threshold;
 	int detailed;
+	int min_hits;
+	int max_gap;
     } kmer_annotation_figfam_parameters;
 
     typedef tuple<int offset, string oligo, string prot_function, string otu> hit_detail;
@@ -19,9 +21,14 @@ module KmerAnnotationByFigfam {
     typedef tuple<string id, string prot_function, string otu, int score,
 	int nonoverlapping_hits, int overlapping_hits, list<hit_detail> details> hit;
 
+    typedef tuple<int nhits, string id, int beg, int end, string protein_function, string otu> dna_hit;
+
     funcdef annotate_proteins(list<tuple<string id, string protein>> proteins, kmer_annotation_figfam_parameters params)
 	returns(list<hit> hits);
 
     funcdef annotate_proteins_fasta(string protein_fasta, kmer_annotation_figfam_parameters params)
 	returns(list<hit> hits);
+
+    funcdef call_genes_in_dna(list<tuple<string id, string dna>> dna, kmer_annotation_figfam_parameters params)
+      returns(list<dna_hit> hits);
 };

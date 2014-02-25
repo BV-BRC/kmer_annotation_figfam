@@ -240,6 +240,8 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	hit_threshold has a value which is an int
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
 	1: (prot_function) a string
@@ -273,6 +275,8 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	hit_threshold has a value which is an int
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
 	1: (prot_function) a string
@@ -373,6 +377,8 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	hit_threshold has a value which is an int
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
 	1: (prot_function) a string
@@ -404,6 +410,8 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	hit_threshold has a value which is an int
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
 	1: (prot_function) a string
@@ -455,6 +463,138 @@ sub annotate_proteins_fasta
 	my $msg = "Invalid returns passed to annotate_proteins_fasta:\n" . join("", map { "\t$_\n" } @_bad_returns);
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
 							       method_name => 'annotate_proteins_fasta');
+    }
+    return($hits);
+}
+
+
+
+
+=head2 call_genes_in_dna
+
+  $hits = $obj->call_genes_in_dna($dna, $params)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$dna is a reference to a list where each element is a reference to a list containing 2 items:
+	0: (id) a string
+	1: (dna) a string
+$params is a kmer_annotation_figfam_parameters
+$hits is a reference to a list where each element is a dna_hit
+kmer_annotation_figfam_parameters is a reference to a hash where the following keys are defined:
+	kmer_size has a value which is an int
+	dataset_name has a value which is a string
+	return_scores_for_all_proteins has a value which is an int
+	score_threshold has a value which is an int
+	hit_threshold has a value which is an int
+	sequential_hit_threshold has a value which is an int
+	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
+dna_hit is a reference to a list containing 6 items:
+	0: (nhits) an int
+	1: (id) a string
+	2: (beg) an int
+	3: (end) an int
+	4: (protein_function) a string
+	5: (otu) a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$dna is a reference to a list where each element is a reference to a list containing 2 items:
+	0: (id) a string
+	1: (dna) a string
+$params is a kmer_annotation_figfam_parameters
+$hits is a reference to a list where each element is a dna_hit
+kmer_annotation_figfam_parameters is a reference to a hash where the following keys are defined:
+	kmer_size has a value which is an int
+	dataset_name has a value which is a string
+	return_scores_for_all_proteins has a value which is an int
+	score_threshold has a value which is an int
+	hit_threshold has a value which is an int
+	sequential_hit_threshold has a value which is an int
+	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
+dna_hit is a reference to a list containing 6 items:
+	0: (nhits) an int
+	1: (id) a string
+	2: (beg) an int
+	3: (end) an int
+	4: (protein_function) a string
+	5: (otu) a string
+
+
+=end text
+
+
+
+=item Description
+
+
+
+=back
+
+=cut
+
+sub call_genes_in_dna
+{
+    my $self = shift;
+    my($dna, $params) = @_;
+
+    my @_bad_arguments;
+    (ref($dna) eq 'ARRAY') or push(@_bad_arguments, "Invalid type for argument \"dna\" (value was \"$dna\")");
+    (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
+    if (@_bad_arguments) {
+	my $msg = "Invalid arguments passed to call_genes_in_dna:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'call_genes_in_dna');
+    }
+
+    my $ctx = $Bio::KBase::KmerAnnotationByFigfam::Service::CallContext;
+    my($hits);
+    #BEGIN call_genes_in_dna
+
+    my $dataset_name = $params->{dataset_name} || $self->{mgr}->default_dataset();
+    my $kmers = $self->{mgr}->get_kmer_object($dataset_name);
+
+    $params->{min_hits} //= 2;
+    $params->{max_gap} //= 600;
+
+    ref($kmers) or die "Could not retrieve kmer dataset for name '$dataset_name'";
+
+    my $kmer_fasta = $self->{mgr}->get_extra_fasta_path($dataset_name);
+
+    # print Dumper($params, $proteins, $kmer_params);
+    
+    $hits = [];
+    for my $ent (@$dna)
+    {
+	my @hits = $kmers->assign_functions_to_PEGs_in_DNA($params->{kmer_size}, $ent->[1], 
+							   $params->{min_hits}, $params->{max_gap}, 0, 0);
+	for my $hit (@hits)
+	{
+	    my($n, $beg, $end, $func, $otu) = @$hit;
+	    push(@$hits, [$n, $ent->[0], $beg, $end, $func, $otu]);
+	}
+    }
+
+    #END call_genes_in_dna
+    my @_bad_returns;
+    (ref($hits) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"hits\" (value was \"$hits\")");
+    if (@_bad_returns) {
+	my $msg = "Invalid returns passed to call_genes_in_dna:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'call_genes_in_dna');
     }
     return($hits);
 }
@@ -519,6 +659,8 @@ score_threshold has a value which is an int
 hit_threshold has a value which is an int
 sequential_hit_threshold has a value which is an int
 detailed has a value which is an int
+min_hits has a value which is an int
+max_gap has a value which is an int
 
 </pre>
 
@@ -534,6 +676,8 @@ score_threshold has a value which is an int
 hit_threshold has a value which is an int
 sequential_hit_threshold has a value which is an int
 detailed has a value which is an int
+min_hits has a value which is an int
+max_gap has a value which is an int
 
 
 =end text
@@ -612,6 +756,46 @@ a reference to a list containing 7 items:
 4: (nonoverlapping_hits) an int
 5: (overlapping_hits) an int
 6: (details) a reference to a list where each element is a hit_detail
+
+
+=end text
+
+=back
+
+
+
+=head2 dna_hit
+
+=over 4
+
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a list containing 6 items:
+0: (nhits) an int
+1: (id) a string
+2: (beg) an int
+3: (end) an int
+4: (protein_function) a string
+5: (otu) a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a list containing 6 items:
+0: (nhits) an int
+1: (id) a string
+2: (beg) an int
+3: (end) an int
+4: (protein_function) a string
+5: (otu) a string
 
 
 =end text

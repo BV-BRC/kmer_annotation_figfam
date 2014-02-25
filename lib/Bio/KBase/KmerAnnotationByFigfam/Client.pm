@@ -100,8 +100,9 @@ sub get_dataset_names
     if ($result) {
 	if ($result->is_error) {
 	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{code},
+					       code => $result->content->{error}->{code},
 					       method_name => 'get_dataset_names',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
 					      );
 	} else {
 	    return wantarray ? @{$result->result} : $result->result->[0];
@@ -167,8 +168,9 @@ sub get_default_dataset_name
     if ($result) {
 	if ($result->is_error) {
 	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{code},
+					       code => $result->content->{error}->{code},
 					       method_name => 'get_default_dataset_name',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
 					      );
 	} else {
 	    return wantarray ? @{$result->result} : $result->result->[0];
@@ -207,6 +209,8 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	hit_threshold has a value which is an int
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
 	1: (prot_function) a string
@@ -240,6 +244,8 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	hit_threshold has a value which is an int
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
 	1: (prot_function) a string
@@ -296,8 +302,9 @@ sub annotate_proteins
     if ($result) {
 	if ($result->is_error) {
 	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{code},
+					       code => $result->content->{error}->{code},
 					       method_name => 'annotate_proteins',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
 					      );
 	} else {
 	    return wantarray ? @{$result->result} : $result->result->[0];
@@ -334,6 +341,8 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	hit_threshold has a value which is an int
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
 	1: (prot_function) a string
@@ -365,6 +374,8 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	hit_threshold has a value which is an int
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
 	1: (prot_function) a string
@@ -421,8 +432,9 @@ sub annotate_proteins_fasta
     if ($result) {
 	if ($result->is_error) {
 	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{code},
+					       code => $result->content->{error}->{code},
 					       method_name => 'annotate_proteins_fasta',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
 					      );
 	} else {
 	    return wantarray ? @{$result->result} : $result->result->[0];
@@ -431,6 +443,128 @@ sub annotate_proteins_fasta
         Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method annotate_proteins_fasta",
 					    status_line => $self->{client}->status_line,
 					    method_name => 'annotate_proteins_fasta',
+				       );
+    }
+}
+
+
+
+=head2 call_genes_in_dna
+
+  $hits = $obj->call_genes_in_dna($dna, $params)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$dna is a reference to a list where each element is a reference to a list containing 2 items:
+	0: (id) a string
+	1: (dna) a string
+$params is a kmer_annotation_figfam_parameters
+$hits is a reference to a list where each element is a dna_hit
+kmer_annotation_figfam_parameters is a reference to a hash where the following keys are defined:
+	kmer_size has a value which is an int
+	dataset_name has a value which is a string
+	return_scores_for_all_proteins has a value which is an int
+	score_threshold has a value which is an int
+	hit_threshold has a value which is an int
+	sequential_hit_threshold has a value which is an int
+	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
+dna_hit is a reference to a list containing 6 items:
+	0: (nhits) an int
+	1: (id) a string
+	2: (beg) an int
+	3: (end) an int
+	4: (protein_function) a string
+	5: (otu) a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$dna is a reference to a list where each element is a reference to a list containing 2 items:
+	0: (id) a string
+	1: (dna) a string
+$params is a kmer_annotation_figfam_parameters
+$hits is a reference to a list where each element is a dna_hit
+kmer_annotation_figfam_parameters is a reference to a hash where the following keys are defined:
+	kmer_size has a value which is an int
+	dataset_name has a value which is a string
+	return_scores_for_all_proteins has a value which is an int
+	score_threshold has a value which is an int
+	hit_threshold has a value which is an int
+	sequential_hit_threshold has a value which is an int
+	detailed has a value which is an int
+	min_hits has a value which is an int
+	max_gap has a value which is an int
+dna_hit is a reference to a list containing 6 items:
+	0: (nhits) an int
+	1: (id) a string
+	2: (beg) an int
+	3: (end) an int
+	4: (protein_function) a string
+	5: (otu) a string
+
+
+=end text
+
+=item Description
+
+
+
+=back
+
+=cut
+
+sub call_genes_in_dna
+{
+    my($self, @args) = @_;
+
+# Authentication: none
+
+    if ((my $n = @args) != 2)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function call_genes_in_dna (received $n, expecting 2)");
+    }
+    {
+	my($dna, $params) = @args;
+
+	my @_bad_arguments;
+        (ref($dna) eq 'ARRAY') or push(@_bad_arguments, "Invalid type for argument 1 \"dna\" (value was \"$dna\")");
+        (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 2 \"params\" (value was \"$params\")");
+        if (@_bad_arguments) {
+	    my $msg = "Invalid arguments passed to call_genes_in_dna:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+								   method_name => 'call_genes_in_dna');
+	}
+    }
+
+    my $result = $self->{client}->call($self->{url}, {
+	method => "KmerAnnotationByFigfam.call_genes_in_dna",
+	params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'call_genes_in_dna',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method call_genes_in_dna",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'call_genes_in_dna',
 				       );
     }
 }
@@ -448,16 +582,16 @@ sub version {
             Bio::KBase::Exceptions::JSONRPC->throw(
                 error => $result->error_message,
                 code => $result->content->{code},
-                method_name => 'annotate_proteins_fasta',
+                method_name => 'call_genes_in_dna',
             );
         } else {
             return wantarray ? @{$result->result} : $result->result->[0];
         }
     } else {
         Bio::KBase::Exceptions::HTTP->throw(
-            error => "Error invoking method annotate_proteins_fasta",
+            error => "Error invoking method call_genes_in_dna",
             status_line => $self->{client}->status_line,
-            method_name => 'annotate_proteins_fasta',
+            method_name => 'call_genes_in_dna',
         );
     }
 }
@@ -513,6 +647,8 @@ score_threshold has a value which is an int
 hit_threshold has a value which is an int
 sequential_hit_threshold has a value which is an int
 detailed has a value which is an int
+min_hits has a value which is an int
+max_gap has a value which is an int
 
 </pre>
 
@@ -528,6 +664,8 @@ score_threshold has a value which is an int
 hit_threshold has a value which is an int
 sequential_hit_threshold has a value which is an int
 detailed has a value which is an int
+min_hits has a value which is an int
+max_gap has a value which is an int
 
 
 =end text
@@ -606,6 +744,46 @@ a reference to a list containing 7 items:
 4: (nonoverlapping_hits) an int
 5: (overlapping_hits) an int
 6: (details) a reference to a list where each element is a hit_detail
+
+
+=end text
+
+=back
+
+
+
+=head2 dna_hit
+
+=over 4
+
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a list containing 6 items:
+0: (nhits) an int
+1: (id) a string
+2: (beg) an int
+3: (end) an int
+4: (protein_function) a string
+5: (otu) a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a list containing 6 items:
+0: (nhits) an int
+1: (id) a string
+2: (beg) an int
+3: (end) an int
+4: (protein_function) a string
+5: (otu) a string
 
 
 =end text
