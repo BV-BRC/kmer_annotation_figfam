@@ -12,7 +12,7 @@ my($opt, $usage) = describe_options("%c %o [ReleaseNumber ...]",
 				    ['help|h', 'Print usage message and exit.'],
 				    ['kmer|k=i@', 
 				     'Install the given kmer size; repeat the option to install multiple kmer sizes. Defaults to 8mers.', 
-				     { default => 8 }
+				     { default => [ 8 ] }
 				    ],
 				    [],
 				    ["If no release number is supplied the latest production release, $default_releasenum, will be installed."],
