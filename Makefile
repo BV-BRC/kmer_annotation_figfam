@@ -9,7 +9,7 @@ SERVICE_NAME = KmerAnnotationByFigfam
 SERVICE_PORT = 7105
 SERVICE_URL = http://10.0.16.184:$(SERVICE_PORT)
 
-SERVICE_DIR = kmer_annotation_by_figfam
+SERVICE_DIR = kmer_annotation_figfam
 SERVICE_SUBDIRS = webroot bin
 
 SRC_SERVICE_PERL = $(wildcard service-scripts/*.pl)
