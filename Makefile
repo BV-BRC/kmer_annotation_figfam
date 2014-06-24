@@ -137,8 +137,8 @@ deploy-dir:
 	fi
 
 deploy-docs: build-docs
-	-mkdir -p $(TARGET)/services/$(SERVICE_NAME)/webroot/.
-	cp docs/*.html $(TARGET)/services/$(SERVICE_NAME)/webroot/.
+	-mkdir -p $(TARGET)/services/$(SERVICE_DIR)/webroot/.
+	cp docs/*.html $(TARGET)/services/$(SERVICE_DIR)/webroot/.
 
 build-docs: compile-docs
 	-mkdir -p docs
