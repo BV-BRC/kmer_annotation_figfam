@@ -9,7 +9,7 @@ SERVICE_NAME = KmerAnnotationByFigfam
 SERVICE_PORT = 7105
 SERVICE_URL = http://10.0.16.184:$(SERVICE_PORT)
 
-SERVICE_DIR = kmer_annotation_by_figfam
+SERVICE_DIR = kmer_annotation_figfam
 SERVICE_SUBDIRS = webroot bin
 
 SRC_SERVICE_PERL = $(wildcard service-scripts/*.pl)
@@ -108,7 +108,7 @@ deploy-all: deploy-client deploy-service
 
 deploy-client: compile-typespec deploy-libs deploy-scripts deploy-docs
 
-deploy-service: deploy-libs deploy-dir deploy-service-scripts
+deploy-service: build-libs deploy-libs deploy-dir deploy-service-scripts
 	$(TPAGE) $(TPAGE_ARGS) service/start_service.tt > $(TARGET)/services/$(SERVICE_DIR)/start_service
 	chmod +x $(TARGET)/services/$(SERVICE_DIR)/start_service
 	$(TPAGE) $(TPAGE_ARGS) service/stop_service.tt > $(TARGET)/services/$(SERVICE_DIR)/stop_service
@@ -137,8 +137,8 @@ deploy-dir:
 	fi
 
 deploy-docs: build-docs
-	-mkdir -p $(TARGET)/services/$(SERVICE_NAME)/webroot/.
-	cp docs/*.html $(TARGET)/services/$(SERVICE_NAME)/webroot/.
+	-mkdir -p $(TARGET)/services/$(SERVICE_DIR)/webroot/.
+	cp docs/*.html $(TARGET)/services/$(SERVICE_DIR)/webroot/.
 
 build-docs: compile-docs
 	-mkdir -p docs

@@ -3,6 +3,33 @@ use Data::Dumper;
 use Bio::KBase::DeploymentConfig;
 use URI;
 use Net::FTP;
+use Getopt::Long::Descriptive;
+
+my $default_releasenum = 59;
+my $default_release = "Release$default_releasenum";
+
+my($opt, $usage) = describe_options("%c %o [ReleaseNumber ...]",
+				    ['help|h', 'Print usage message and exit.'],
+				    ['kmer|k=i@', 
+				     'Install the given kmer size; repeat the option to install multiple kmer sizes. Defaults to 8mers.', 
+				     { default => [ 8 ] }
+				    ],
+				    [],
+				    ["If no release number is supplied the latest production release, $default_releasenum, will be installed."],
+				    ["The format of ReleaseNumber is 'ReleaseNN'; e.g. release $default_releasenum is '$default_release'."],
+);
+
+print($usage->text), exit  if $opt->help;
+
+my @releases;
+if (@ARGV == 0)
+{
+    push(@releases, $default_release);
+}
+else
+{
+    push(@releases, @ARGV);
+}
 
 my $cfg = Bio::KBase::DeploymentConfig->new('KmerAnnotationByFigfam',
 					    { 
@@ -65,12 +92,53 @@ for my $f (@files)
     }
 }
 
-print Dumper(\%ffs, \%kmers);
+#print Dumper(\%ffs, \%kmers);
 
-my @ok_fams = grep { ref($kmers{$_}) eq 'HASH' } keys %ffs;
+#
+# Use the list of requested releases to ensure we have the data we're looking for.
+#
 
-for my $fam (@ok_fams)
+my @work;
+for my $rel (@releases)
 {
+    my($n) = $rel =~ /^Release(\d+)/;
+    $n or die "$rel is invalid - not of the form ReleaseNN\n";
+
+    my $fams = $ffs{$n};
+    $fams or die "Figfams download not available for $rel\n";
+
+    my $kmers = $kmers{$n};
+    if (!ref($kmers))
+    {
+	die "Kmers not available for download for $rel\n";
+    }
+    my @kwork;
+    for my $kmer (@{$opt->kmer})
+    {
+	if ($kmers->{$kmer})
+	{
+	    push(@kwork, [$kmer, $kmers->{$kmer}]);
+	}
+	else
+	{
+	    die "Kmer size $kmer not available for $rel\n";
+	}
+    }
+    push(@work, [$rel, $n, $fams, \@kwork]);
+}
+#die Dumper(\@work);
+
+#
+# @work is a list of tuples [ReleaseNN, NN, fams-file, $kmer_work]
+#
+# $kmer_work is a ref to a list of tuples [$kmer-size, $file]
+#
+
+for my $ent (@work)
+{
+
+    my($rel, $fam, $fam_file, $kmer_work) = @$ent;
+
     #
     # This code relies on the internal structure of the figfam releases.
     # That's OK.
@@ -78,14 +146,15 @@ for my $fam (@ok_fams)
     if (! -s "$kmer_data/Release$fam/families.2c")
     {
 	print "Load base release for $fam\n";
-	download_and_unpack($ffs{$fam});
+	download_and_unpack($fam_file);
     }
-    for my $k (keys %{$kmers{$fam}})
+    for my $kent (@$kmer_work)
     {
+	my($k, $kmer_file) = @$kent;
 	if (! -s "$kmer_data/Release$fam/Merged/$k/table.binary")
 	{
 	    print "Load k=$k kmers for $fam\n";
-	    download_and_unpack($kmers{$fam}->{$k});
+	    download_and_unpack($kmer_file);
 	}
     }
     if (! -d "$kmer_data/ACTIVE/Release$fam")
@@ -121,7 +190,7 @@ if (! -d "$kmer_data/DEFAULT")
 sub download_and_unpack
 {
     my($file) = @_;
-    print "DL '$file'\n";
+    print "Download $file\n";
     my $file_url = "$url/$file";
     my $rc;
     if (! -s "$kmer_tmp/$file")
@@ -129,6 +198,7 @@ sub download_and_unpack
 	$rc = system("curl", "-L", "-o", "$kmer_tmp/$file", $file_url);
 	$rc == 0 or die "Error downloading $file_url to $kmer_tmp/$file";
     }
+    print "Download complete; extracting to $kmer_data\n";
     $rc = system("tar", "-C", $kmer_data, "-x", "-z", "-p", "-f", "$kmer_tmp/$file");
     $rc == 0 or die "Error untarring $kmer_tmp/$file";
 }

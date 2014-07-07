@@ -1,0 +1,5 @@
+#group-name	kmer_ann_fig	Kmer FigFam Annotation Commands
+kmer-figfam-annotate-proteins	kmer_ann_fig
+kmer-figfam-get-dataset-names	kmer_ann_fig
+kmer-figfam-get-default-dataset-name	kmer_ann_fig
+kmer-figfam-reannotate-genomes	kmer_ann_fig
