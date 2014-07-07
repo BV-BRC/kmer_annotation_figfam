@@ -241,6 +241,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
@@ -276,6 +277,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
@@ -378,6 +380,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
@@ -411,6 +414,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
@@ -495,6 +499,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 dna_hit is a reference to a list containing 6 items:
 	0: (nhits) an int
@@ -524,6 +529,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 dna_hit is a reference to a list containing 6 items:
 	0: (nhits) an int
@@ -579,11 +585,12 @@ sub call_genes_in_dna
     $hits = [];
     for my $ent (@$dna)
     {
-	my @hits = $kmers->assign_functions_to_PEGs_in_DNA($params->{kmer_size}, $ent->[1], 
+	my $ent_hits = $kmers->assign_functions_to_PEGs_in_DNA($params->{kmer_size}, $ent->[1], 
 							   $params->{min_hits}, $params->{max_gap}, 0, 0);
-	for my $hit (@hits)
+	for my $hit (@$ent_hits)
 	{
 	    my($n, $beg, $end, $func, $otu) = @$hit;
+	    next unless abs($beg - $end) >= $params->{min_size};
 	    push(@$hits, [$n, $ent->[0], $beg, $end, $func, $otu]);
 	}
     }
@@ -660,6 +667,7 @@ hit_threshold has a value which is an int
 sequential_hit_threshold has a value which is an int
 detailed has a value which is an int
 min_hits has a value which is an int
+min_size has a value which is an int
 max_gap has a value which is an int
 
 </pre>
@@ -677,6 +685,7 @@ hit_threshold has a value which is an int
 sequential_hit_threshold has a value which is an int
 detailed has a value which is an int
 min_hits has a value which is an int
+min_size has a value which is an int
 max_gap has a value which is an int
 
 

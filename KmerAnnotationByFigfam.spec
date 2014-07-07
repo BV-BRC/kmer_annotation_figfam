@@ -13,6 +13,7 @@ module KmerAnnotationByFigfam {
 	int sequential_hit_threshold;
 	int detailed;
 	int min_hits;
+	int min_size;
 	int max_gap;
     } kmer_annotation_figfam_parameters;
 
