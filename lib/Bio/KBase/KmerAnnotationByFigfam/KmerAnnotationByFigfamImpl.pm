@@ -20,6 +20,7 @@ KmerAnnotationByFigfam
 use Data::Dumper;
 use KmerMgr;
 use Bio::KBase::DeploymentConfig;
+use SeedAware;
 
 #
 # transform the params struct into what the Kmers.pm code is looking for.
@@ -87,6 +88,20 @@ sub new
 
     my $mgr = KmerMgr->new(base_dir => $kmer_data);
     $self->{mgr} = $mgr;
+
+    if (my $tmp = $cfg->setting("tempdir"))
+    {
+	if (-d $tmp)
+	{
+	    $ENV{TMPDIR} = $ENV{TEMPDIR} = $tmp;
+	    print STDERR "Set tmpdir to $tmp\n";
+	    print STDERR "SEED thinks tmp=" . SeedAware::location_of_tmp() . "\n";
+	}
+	else
+	{
+	    die "Configured tempdir $tmp does not exist";
+	}
+    }
     
     #END_CONSTRUCTOR
 
