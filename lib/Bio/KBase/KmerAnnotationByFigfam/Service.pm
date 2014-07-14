@@ -21,6 +21,7 @@ our %return_counts = (
         'annotate_proteins' => 1,
         'annotate_proteins_fasta' => 1,
         'call_genes_in_dna' => 1,
+        'estimate_closest_genomes' => 1,
         'version' => 1,
 );
 
@@ -35,6 +36,7 @@ sub _build_valid_methods
         'annotate_proteins' => 1,
         'annotate_proteins_fasta' => 1,
         'call_genes_in_dna' => 1,
+        'estimate_closest_genomes' => 1,
         'version' => 1,
     };
     return $methods;

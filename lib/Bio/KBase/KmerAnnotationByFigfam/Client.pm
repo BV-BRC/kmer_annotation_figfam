@@ -29,7 +29,7 @@ sub new
     
     if (!defined($url))
     {
-	$url = 'http://10.0.16.184:7105';
+	$url = 'http://140.221.85.61:7105';
     }
 
     my $self = {
@@ -210,6 +210,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
@@ -245,6 +246,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
@@ -342,6 +344,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
@@ -375,6 +378,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 hit is a reference to a list containing 7 items:
 	0: (id) a string
@@ -474,6 +478,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 dna_hit is a reference to a list containing 6 items:
 	0: (nhits) an int
@@ -503,6 +508,7 @@ kmer_annotation_figfam_parameters is a reference to a hash where the following k
 	sequential_hit_threshold has a value which is an int
 	detailed has a value which is an int
 	min_hits has a value which is an int
+	min_size has a value which is an int
 	max_gap has a value which is an int
 dna_hit is a reference to a list containing 6 items:
 	0: (nhits) an int
@@ -571,6 +577,102 @@ sub call_genes_in_dna
 
 
 
+=head2 estimate_closest_genomes
+
+  $output = $obj->estimate_closest_genomes($proteins, $dataset_name)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$proteins is a reference to a list where each element is a reference to a list containing 3 items:
+	0: (id) a string
+	1: (function) a string
+	2: (translation) a string
+$dataset_name is a string
+$output is a reference to a list where each element is a reference to a list containing 3 items:
+	0: (genome_id) a string
+	1: (score) an int
+	2: (genome_name) a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$proteins is a reference to a list where each element is a reference to a list containing 3 items:
+	0: (id) a string
+	1: (function) a string
+	2: (translation) a string
+$dataset_name is a string
+$output is a reference to a list where each element is a reference to a list containing 3 items:
+	0: (genome_id) a string
+	1: (score) an int
+	2: (genome_name) a string
+
+
+=end text
+
+=item Description
+
+
+
+=back
+
+=cut
+
+sub estimate_closest_genomes
+{
+    my($self, @args) = @_;
+
+# Authentication: none
+
+    if ((my $n = @args) != 2)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function estimate_closest_genomes (received $n, expecting 2)");
+    }
+    {
+	my($proteins, $dataset_name) = @args;
+
+	my @_bad_arguments;
+        (ref($proteins) eq 'ARRAY') or push(@_bad_arguments, "Invalid type for argument 1 \"proteins\" (value was \"$proteins\")");
+        (!ref($dataset_name)) or push(@_bad_arguments, "Invalid type for argument 2 \"dataset_name\" (value was \"$dataset_name\")");
+        if (@_bad_arguments) {
+	    my $msg = "Invalid arguments passed to estimate_closest_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+								   method_name => 'estimate_closest_genomes');
+	}
+    }
+
+    my $result = $self->{client}->call($self->{url}, {
+	method => "KmerAnnotationByFigfam.estimate_closest_genomes",
+	params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'estimate_closest_genomes',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method estimate_closest_genomes",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'estimate_closest_genomes',
+				       );
+    }
+}
+
+
+
 sub version {
     my ($self) = @_;
     my $result = $self->{client}->call($self->{url}, {
@@ -582,16 +684,16 @@ sub version {
             Bio::KBase::Exceptions::JSONRPC->throw(
                 error => $result->error_message,
                 code => $result->content->{code},
-                method_name => 'call_genes_in_dna',
+                method_name => 'estimate_closest_genomes',
             );
         } else {
             return wantarray ? @{$result->result} : $result->result->[0];
         }
     } else {
         Bio::KBase::Exceptions::HTTP->throw(
-            error => "Error invoking method call_genes_in_dna",
+            error => "Error invoking method estimate_closest_genomes",
             status_line => $self->{client}->status_line,
-            method_name => 'call_genes_in_dna',
+            method_name => 'estimate_closest_genomes',
         );
     }
 }
@@ -648,6 +750,7 @@ hit_threshold has a value which is an int
 sequential_hit_threshold has a value which is an int
 detailed has a value which is an int
 min_hits has a value which is an int
+min_size has a value which is an int
 max_gap has a value which is an int
 
 </pre>
@@ -665,6 +768,7 @@ hit_threshold has a value which is an int
 sequential_hit_threshold has a value which is an int
 detailed has a value which is an int
 min_hits has a value which is an int
+min_size has a value which is an int
 max_gap has a value which is an int
 
 

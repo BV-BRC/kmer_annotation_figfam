@@ -609,6 +609,101 @@ sub call_genes_in_dna
 
 
 
+=head2 estimate_closest_genomes
+
+  $output = $obj->estimate_closest_genomes($proteins, $dataset_name)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$proteins is a reference to a list where each element is a reference to a list containing 3 items:
+	0: (id) a string
+	1: (function) a string
+	2: (translation) a string
+$dataset_name is a string
+$output is a reference to a list where each element is a reference to a list containing 3 items:
+	0: (genome_id) a string
+	1: (score) an int
+	2: (genome_name) a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$proteins is a reference to a list where each element is a reference to a list containing 3 items:
+	0: (id) a string
+	1: (function) a string
+	2: (translation) a string
+$dataset_name is a string
+$output is a reference to a list where each element is a reference to a list containing 3 items:
+	0: (genome_id) a string
+	1: (score) an int
+	2: (genome_name) a string
+
+
+=end text
+
+
+
+=item Description
+
+
+
+=back
+
+=cut
+
+sub estimate_closest_genomes
+{
+    my $self = shift;
+    my($proteins, $dataset_name) = @_;
+
+    my @_bad_arguments;
+    (ref($proteins) eq 'ARRAY') or push(@_bad_arguments, "Invalid type for argument \"proteins\" (value was \"$proteins\")");
+    (!ref($dataset_name)) or push(@_bad_arguments, "Invalid type for argument \"dataset_name\" (value was \"$dataset_name\")");
+    if (@_bad_arguments) {
+	my $msg = "Invalid arguments passed to estimate_closest_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'estimate_closest_genomes');
+    }
+
+    my $ctx = $Bio::KBase::KmerAnnotationByFigfam::Service::CallContext;
+    my($output);
+    #BEGIN estimate_closest_genomes
+
+    if (!$dataset_name)
+    {
+	$dataset_name = $self->{mgr}->default_dataset();
+    }
+
+    my $kmers = $self->{mgr}->get_kmer_object($dataset_name);
+
+    $kmers or die "Could not find kmers for dataset $dataset_name";
+
+    my @neighbors = $kmers->compute_approximate_neighbors($proteins);
+
+    $output = \@neighbors;
+  
+    #END estimate_closest_genomes
+    my @_bad_returns;
+    (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
+    if (@_bad_returns) {
+	my $msg = "Invalid returns passed to estimate_closest_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'estimate_closest_genomes');
+    }
+    return($output);
+}
+
+
+
+
 =head2 version 
 
   $return = $obj->version()

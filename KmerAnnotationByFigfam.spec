@@ -32,4 +32,8 @@ module KmerAnnotationByFigfam {
 
     funcdef call_genes_in_dna(list<tuple<string id, string dna>> dna, kmer_annotation_figfam_parameters params)
       returns(list<dna_hit> hits);
+
+    funcdef estimate_closest_genomes(list<tuple<string id, string function, string translation>> proteins, 
+    				     string dataset_name)
+      returns(list<tuple<string genome_id, int score, string genome_name>> output);
 };

@@ -124,7 +124,7 @@ class KmerAnnotationByFigfam(object):
     def __init__(self, url=None, timeout=30 * 60, user_id=None,
                  password=None, token=None, ignore_authrc=False):
         if url is None:
-            url = 'http://10.0.16.184:7105'
+            url = 'http://140.221.85.61:7105'
         scheme, _, _, _, _, _ = urlparse.urlparse(url)
         if scheme not in _URL_SCHEME:
             raise ValueError(url + " isn't a valid http url")
@@ -296,6 +296,41 @@ class KmerAnnotationByFigfam(object):
 
         arg_hash = {'method': 'KmerAnnotationByFigfam.call_genes_in_dna',
                     'params': [dna, params],
+                    'version': '1.1',
+                    'id': str(random.random())[2:]
+                    }
+
+        body = json.dumps(arg_hash, cls=JSONObjectEncoder)
+        try:
+            request = urllib2.Request(self.url, body, self._headers)
+            ret = urllib2.urlopen(request, timeout=self.timeout)
+        except HTTPError as h:
+            if _CT in h.headers and h.headers[_CT] == _AJ:
+                b = h.read()
+                err = json.loads(b)
+                if 'error' in err:
+                    raise ServerError(**err['error'])
+                else:            # this should never happen... but if it does
+                    se = ServerError('Unknown', 0, b)
+                    se.httpError = h
+                    # h.read() will return '' in the calling code.
+                    raise se
+            else:
+                raise h
+        if ret.code != httplib.OK:
+            raise URLError('Received bad response code from server:' +
+                           ret.code)
+        resp = json.loads(ret.read())
+
+        if 'result' in resp:
+            return resp['result'][0]
+        else:
+            raise ServerError('Unknown', 0, 'An unknown server error occurred')
+
+    def estimate_closest_genomes(self, proteins, dataset_name):
+
+        arg_hash = {'method': 'KmerAnnotationByFigfam.estimate_closest_genomes',
+                    'params': [proteins, dataset_name],
                     'version': '1.1',
                     'id': str(random.random())[2:]
                     }
