@@ -701,9 +701,7 @@ sub estimate_closest_genomes
 
     $kmers or die "Could not find kmers for dataset $dataset_name";
 
-    my @neighbors = $kmers->compute_approximate_neighbors($proteins);
-
-    $output = \@neighbors;
+    my $output = $kmers->compute_approximate_neighbors($proteins);
   
     #END estimate_closest_genomes
     my @_bad_returns;
