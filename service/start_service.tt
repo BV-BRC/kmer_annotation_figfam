@@ -9,6 +9,13 @@ export KB_SERVICE_NAME=[% kb_service_name %]
 
 pid_file=$KB_SERVICE_DIR/service.pid
 
+if [ -f $KB_TOP/setenv.sh ] ; then
+  . $KB_TOP/setenv.sh
+fi
+if [ -f $KB_SERVICE_DIR/setenv.sh ] ; then
+  . $KB_SERVICE_DIR/setenv.sh
+fi
+
 [% IF kb_starman_workers -%]
 workers="--workers [% kb_starman_workers %]"
 [% END -%]
