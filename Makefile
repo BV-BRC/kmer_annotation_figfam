@@ -20,7 +20,7 @@ STARMAN_WORKERS = 8
 STARMAN_MAX_REQUESTS = 100
 
 ifdef DEPLOYMENT_VAR_DIR
-SERVICE_LOGDIR = $(DEPLOYMENT_VAR_DIR)/services/$(SERVICE)
+SERVICE_LOGDIR = $(DEPLOYMENT_VAR_DIR)/services/$(SERVICE_DIR)
 TPAGE_SERVICE_LOGDIR = --define kb_service_log_dir=$(SERVICE_LOGDIR)
 endif
 
@@ -117,11 +117,11 @@ deploy-client: compile-typespec deploy-libs deploy-scripts deploy-docs
 deploy-service: build-libs deploy-libs deploy-dir deploy-service-scripts
 	for templ in service/*.tt ; do \
 		base=`basename $$templ .tt` ; \
-		$(TPAGE) $(TPAGE_ARGS) $$templ > $(TARGET)/services/$(SERVICE)/$$base ; \
-		chmod +x $(TARGET)/services/$(SERVICE)/$$base ; \
+		$(TPAGE) $(TPAGE_ARGS) $$templ > $(TARGET)/services/$(SERVICE_DIR)/$$base ; \
+		chmod +x $(TARGET)/services/$(SERVICE_DIR)/$$base ; \
 	done
-	rm -f $(TARGET)/postinstall/$(SERVICE)
-	ln -s ../services/$(SERVICE)/postinstall $(TARGET)/postinstall/$(SERVICE)
+	rm -f $(TARGET)/postinstall/$(SERVICE_DIR)
+	ln -s ../services/$(SERVICE_DIR)/postinstall $(TARGET)/postinstall/$(SERVICE_DIR)
 
 deploy-service-scripts:
 	export KB_TOP=$(TARGET); \
