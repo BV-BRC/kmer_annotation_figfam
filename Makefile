@@ -19,12 +19,18 @@ DEPLOY_SERVICE_PERL = $(addprefix $(TARGET)/bin/,$(basename $(notdir $(SRC_SERVI
 STARMAN_WORKERS = 8
 STARMAN_MAX_REQUESTS = 100
 
+ifdef DEPLOYMENT_VAR_DIR
+SERVICE_LOGDIR = $(DEPLOYMENT_VAR_DIR)/services/$(SERVICE)
+TPAGE_SERVICE_LOGDIR = --define kb_service_log_dir=$(SERVICE_LOGDIR)
+endif
+
 TPAGE_ARGS = --define kb_top=$(TARGET) --define kb_runtime=$(DEPLOY_RUNTIME) --define kb_service_name=$(SERVICE_NAME) \
 	--define kb_service_port=$(SERVICE_PORT) --define kb_service_dir=$(SERVICE_DIR) \
 	--define kb_sphinx_port=$(SPHINX_PORT) --define kb_sphinx_host=$(SPHINX_HOST) \
 	--define kb_psgi=$(SERVICE_NAME).psgi \
 	--define kb_starman_workers=$(STARMAN_WORKERS) \
-	--define kb_starman_max_requests=$(STARMAN_MAX_REQUESTS)
+	--define kb_starman_max_requests=$(STARMAN_MAX_REQUESTS) \
+	$(TPAGE_SERVICE_LOGDIR)
 
 default: bin compile-typespec
 
@@ -109,10 +115,13 @@ deploy-all: deploy-client deploy-service
 deploy-client: compile-typespec deploy-libs deploy-scripts deploy-docs
 
 deploy-service: build-libs deploy-libs deploy-dir deploy-service-scripts
-	$(TPAGE) $(TPAGE_ARGS) service/start_service.tt > $(TARGET)/services/$(SERVICE_DIR)/start_service
-	chmod +x $(TARGET)/services/$(SERVICE_DIR)/start_service
-	$(TPAGE) $(TPAGE_ARGS) service/stop_service.tt > $(TARGET)/services/$(SERVICE_DIR)/stop_service
-	chmod +x $(TARGET)/services/$(SERVICE_DIR)/stop_service
+	for templ in service/*.tt ; do \
+		base=`basename $$templ .tt` ; \
+		$(TPAGE) $(TPAGE_ARGS) $$templ > $(TARGET)/services/$(SERVICE)/$$base ; \
+		chmod +x $(TARGET)/services/$(SERVICE)/$$base ; \
+	done
+	rm -f $(TARGET)/postinstall/$(SERVICE)
+	ln -s ../services/$(SERVICE)/postinstall $(TARGET)/postinstall/$(SERVICE)
 
 deploy-service-scripts:
 	export KB_TOP=$(TARGET); \
