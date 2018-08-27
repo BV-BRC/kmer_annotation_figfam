@@ -159,6 +159,7 @@ build-libs: compile-typespec
 
 compile-typespec: Makefile
 	compile_typespec \
+		--patric \
 		--psgi $(SERVICE_NAME).psgi \
 		--impl Bio::KBase::$(SERVICE_NAME)::$(SERVICE_NAME)Impl \
 		--service Bio::KBase::$(SERVICE_NAME)::Service \

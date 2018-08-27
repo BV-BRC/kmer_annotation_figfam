@@ -1,10 +1,17 @@
 package Bio::KBase::KmerAnnotationByFigfam::Client;
 
-use JSON::RPC::Client;
+use JSON::RPC::Legacy::Client;
+use POSIX;
 use strict;
 use Data::Dumper;
 use URI;
 use Bio::KBase::Exceptions;
+my $get_time = sub { time, 0 };
+eval {
+    require Time::HiRes;
+    $get_time = sub { Time::HiRes::gettimeofday() };
+};
+
 
 # Client version should match Impl version
 # This is a Semantic Version number,
@@ -29,13 +36,47 @@ sub new
     
     if (!defined($url))
     {
-	$url = 'http://140.221.85.61:7105';
+	$url = 'http://10.0.16.184:7105';
     }
 
     my $self = {
 	client => Bio::KBase::KmerAnnotationByFigfam::Client::RpcClient->new,
 	url => $url,
+	headers => [],
     };
+
+    chomp($self->{hostname} = `hostname`);
+    $self->{hostname} ||= 'unknown-host';
+
+    #
+    # Set up for propagating KBRPC_TAG and KBRPC_METADATA environment variables through
+    # to invoked services. If these values are not set, we create a new tag
+    # and a metadata field with basic information about the invoking script.
+    #
+    if ($ENV{KBRPC_TAG})
+    {
+	$self->{kbrpc_tag} = $ENV{KBRPC_TAG};
+    }
+    else
+    {
+	my ($t, $us) = &$get_time();
+	$us = sprintf("%06d", $us);
+	my $ts = strftime("%Y-%m-%dT%H:%M:%S.${us}Z", gmtime $t);
+	$self->{kbrpc_tag} = "C:$0:$self->{hostname}:$$:$ts";
+    }
+    push(@{$self->{headers}}, 'Kbrpc-Tag', $self->{kbrpc_tag});
+
+    if ($ENV{KBRPC_METADATA})
+    {
+	$self->{kbrpc_metadata} = $ENV{KBRPC_METADATA};
+	push(@{$self->{headers}}, 'Kbrpc-Metadata', $self->{kbrpc_metadata});
+    }
+
+    if ($ENV{KBRPC_ERROR_DEST})
+    {
+	$self->{kbrpc_error_dest} = $ENV{KBRPC_ERROR_DEST};
+	push(@{$self->{headers}}, 'Kbrpc-Errordest', $self->{kbrpc_error_dest});
+    }
 
 
     my $ua = $self->{client}->ua;	 
@@ -93,7 +134,7 @@ sub get_dataset_names
 							       "Invalid argument count for function get_dataset_names (received $n, expecting 0)");
     }
 
-    my $result = $self->{client}->call($self->{url}, {
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
 	method => "KmerAnnotationByFigfam.get_dataset_names",
 	params => \@args,
     });
@@ -161,7 +202,7 @@ sub get_default_dataset_name
 							       "Invalid argument count for function get_default_dataset_name (received $n, expecting 0)");
     }
 
-    my $result = $self->{client}->call($self->{url}, {
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
 	method => "KmerAnnotationByFigfam.get_default_dataset_name",
 	params => \@args,
     });
@@ -297,7 +338,7 @@ sub annotate_proteins
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, {
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
 	method => "KmerAnnotationByFigfam.annotate_proteins",
 	params => \@args,
     });
@@ -429,7 +470,7 @@ sub annotate_proteins_fasta
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, {
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
 	method => "KmerAnnotationByFigfam.annotate_proteins_fasta",
 	params => \@args,
     });
@@ -553,7 +594,7 @@ sub call_genes_in_dna
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, {
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
 	method => "KmerAnnotationByFigfam.call_genes_in_dna",
 	params => \@args,
     });
@@ -649,7 +690,7 @@ sub estimate_closest_genomes
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, {
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
 	method => "KmerAnnotationByFigfam.estimate_closest_genomes",
 	params => \@args,
     });
@@ -675,7 +716,7 @@ sub estimate_closest_genomes
 
 sub version {
     my ($self) = @_;
-    my $result = $self->{client}->call($self->{url}, {
+    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
         method => "KmerAnnotationByFigfam.version",
         params => [],
     });
@@ -899,22 +940,28 @@ a reference to a list containing 6 items:
 =cut
 
 package Bio::KBase::KmerAnnotationByFigfam::Client::RpcClient;
-use base 'JSON::RPC::Client';
+use base 'JSON::RPC::Legacy::Client';
+use POSIX;
+use strict;
 
 #
 # Override JSON::RPC::Client::call because it doesn't handle error returns properly.
 #
 
 sub call {
-    my ($self, $uri, $obj) = @_;
+    my ($self, $uri, $headers, $obj) = @_;
     my $result;
 
-    if ($uri =~ /\?/) {
-       $result = $self->_get($uri);
-    }
-    else {
-        Carp::croak "not hashref." unless (ref $obj eq 'HASH');
-        $result = $self->_post($uri, $obj);
+
+    {
+	if ($uri =~ /\?/) {
+	    $result = $self->_get($uri);
+	}
+	else {
+	    Carp::croak "not hashref." unless (ref $obj eq 'HASH');
+	    $result = $self->_post($uri, $headers, $obj);
+	}
+
     }
 
     my $service = $obj->{method} =~ /^system\./ if ( $obj );
@@ -929,11 +976,11 @@ sub call {
             return JSON::RPC::ServiceObject->new($result, $self->json);
         }
 
-        return JSON::RPC::ReturnObject->new($result, $self->json);
+        return JSON::RPC::Legacy::ReturnObject->new($result, $self->json);
     }
     elsif ($result->content_type eq 'application/json')
     {
-        return JSON::RPC::ReturnObject->new($result, $self->json);
+        return JSON::RPC::Legacy::ReturnObject->new($result, $self->json);
     }
     else {
         return;
@@ -942,7 +989,7 @@ sub call {
 
 
 sub _post {
-    my ($self, $uri, $obj) = @_;
+    my ($self, $uri, $headers, $obj) = @_;
     my $json = $self->json;
 
     $obj->{version} ||= $self->{version} || '1.1';
@@ -953,7 +1000,7 @@ sub _post {
             $self->id($obj->{id}) if ($obj->{id}); # if undef, it is notification.
         }
         else {
-            $obj->{id} = $self->id || ($self->id('JSON::RPC::Client'));
+            $obj->{id} = $self->id || ($self->id('JSON::RPC::Legacy::Client'));
         }
     }
     else {
@@ -969,6 +1016,7 @@ sub _post {
         Content_Type   => $self->{content_type},
         Content        => $content,
         Accept         => 'application/json',
+	@$headers,
 	($self->{token} ? (Authorization => $self->{token}) : ()),
     );
 }
