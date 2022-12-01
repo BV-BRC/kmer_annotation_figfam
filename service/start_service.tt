@@ -4,10 +4,22 @@ export KB_RUNTIME=[% kb_runtime %]
 export PATH=$KB_TOP/bin:$KB_RUNTIME/bin:$PATH
 export PERL5LIB=$KB_TOP/lib
 export KB_SERVICE_DIR=$KB_TOP/services/[% kb_service_dir %]
+[% IF kb_service_log_dir -%]
+export KB_SERVICE_LOG_DIR="[% kb_service_log_dir %]"
+[% ELSE -%]
+export KB_SERVICE_LOG_DIR="$KB_SERVICE_DIR"
+[% END -%]
 export KB_DEPLOYMENT_CONFIG=$KB_TOP/deployment.cfg
 export KB_SERVICE_NAME=[% kb_service_name %]
 
-pid_file=$KB_SERVICE_DIR/service.pid
+pid_file=$KB_SERVICE_LOG_DIR/service.pid
+
+if [ -f $KB_TOP/setenv.sh ] ; then
+  . $KB_TOP/setenv.sh
+fi
+if [ -f $KB_SERVICE_DIR/setenv.sh ] ; then
+  . $KB_SERVICE_DIR/setenv.sh
+fi
 
 [% IF kb_starman_workers -%]
 workers="--workers [% kb_starman_workers %]"
@@ -18,8 +30,8 @@ max_requests="--max-requests [% kb_starman_max_requests %]"
 
 starman_params="--listen :[% kb_service_port %] --pid $pid_file $workers $max_requests"
 
-starman_params="$starman_params --error-log $KB_SERVICE_DIR/error.log"
-starman_params="$starman_params --access-log $KB_SERVICE_DIR/access.log"
+starman_params="$starman_params --error-log $KB_SERVICE_LOG_DIR/error.log"
+starman_params="$starman_params --access-log $KB_SERVICE_LOG_DIR/access.log"
 
 starman_params="$starman_params --daemonize"
 
