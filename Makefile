@@ -108,13 +108,13 @@ deploy-all: deploy-client deploy-service
 
 deploy-client: compile-typespec deploy-libs deploy-scripts deploy-docs
 
-deploy-service: build-libs deploy-libs deploy-dir deploy-service-scripts
+deploy-service: build-libs deploy-libs deploy-dir deploy-service-scripts-local
 	$(TPAGE) $(TPAGE_ARGS) service/start_service.tt > $(TARGET)/services/$(SERVICE_DIR)/start_service
 	chmod +x $(TARGET)/services/$(SERVICE_DIR)/start_service
 	$(TPAGE) $(TPAGE_ARGS) service/stop_service.tt > $(TARGET)/services/$(SERVICE_DIR)/stop_service
 	chmod +x $(TARGET)/services/$(SERVICE_DIR)/stop_service
 
-deploy-service-scripts:
+deploy-service-scripts-local:
 	export KB_TOP=$(TARGET); \
 	export KB_RUNTIME=$(DEPLOY_RUNTIME); \
 	export KB_PERL_PATH=$(TARGET)/lib ; \
