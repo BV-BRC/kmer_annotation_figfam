@@ -1,0 +1,15 @@
+[Unit]
+Description=Kmer V1 annotation
+After=network.target
+RequiresMountsFor=/vol/rast-prod
+[Service]
+ExecStart=/vol/rast-prod/ubuntu-services/kmer-annotation/deployment/services/kmer_annotation_figfam/start_service 
+ExecStart=/vol/rast-prod/ubuntu-services/kmer-annotation/deployment/services/kmer_annotation_figfam/stop_service 
+Type=forking
+PIDFIle=/vol/rast-prod/ubuntu-services/kmer-annotation/deployment/services/kmer_annotation_figfam/service.pid
+User=rastprod
+Group=rastprod
+
+
+[Install]
+WantedBy=default.target
