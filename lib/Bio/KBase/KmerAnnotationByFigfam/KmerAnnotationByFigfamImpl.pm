@@ -1,6 +1,5 @@
 package Bio::KBase::KmerAnnotationByFigfam::KmerAnnotationByFigfamImpl;
 use strict;
-use Bio::KBase::Exceptions;
 # Use Semantic Versioning (2.0.0-rc.1)
 # http://semver.org 
 our $VERSION = "0.1.0";
@@ -111,16 +110,13 @@ sub new
     }
     return $self;
 }
-
 =head1 METHODS
-
-
-
 =head2 get_dataset_names
 
   $dataset_names = $obj->get_dataset_names()
 
 =over 4
+
 
 =item Parameter and return types
 
@@ -128,7 +124,6 @@ sub new
 
 <pre>
 $dataset_names is a reference to a list where each element is a string
-
 </pre>
 
 =end html
@@ -137,13 +132,11 @@ $dataset_names is a reference to a list where each element is a string
 
 $dataset_names is a reference to a list where each element is a string
 
-
 =end text
 
 
 
 =item Description
-
 
 
 =back
@@ -164,13 +157,10 @@ sub get_dataset_names
     (ref($dataset_names) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"dataset_names\" (value was \"$dataset_names\")");
     if (@_bad_returns) {
 	my $msg = "Invalid returns passed to get_dataset_names:\n" . join("", map { "\t$_\n" } @_bad_returns);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'get_dataset_names');
+	die $msg;
     }
     return($dataset_names);
 }
-
-
 
 
 =head2 get_default_dataset_name
@@ -179,13 +169,13 @@ sub get_dataset_names
 
 =over 4
 
+
 =item Parameter and return types
 
 =begin html
 
 <pre>
 $default_dataset_name is a string
-
 </pre>
 
 =end html
@@ -194,13 +184,11 @@ $default_dataset_name is a string
 
 $default_dataset_name is a string
 
-
 =end text
 
 
 
 =item Description
-
 
 
 =back
@@ -222,13 +210,10 @@ sub get_default_dataset_name
     (!ref($default_dataset_name)) or push(@_bad_returns, "Invalid type for return variable \"default_dataset_name\" (value was \"$default_dataset_name\")");
     if (@_bad_returns) {
 	my $msg = "Invalid returns passed to get_default_dataset_name:\n" . join("", map { "\t$_\n" } @_bad_returns);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'get_default_dataset_name');
+	die $msg;
     }
     return($default_dataset_name);
 }
-
-
 
 
 =head2 annotate_proteins
@@ -236,6 +221,7 @@ sub get_default_dataset_name
   $hits = $obj->annotate_proteins($proteins, $params)
 
 =over 4
+
 
 =item Parameter and return types
 
@@ -271,7 +257,6 @@ hit_detail is a reference to a list containing 4 items:
 	1: (oligo) a string
 	2: (prot_function) a string
 	3: (otu) a string
-
 </pre>
 
 =end html
@@ -308,13 +293,11 @@ hit_detail is a reference to a list containing 4 items:
 	2: (prot_function) a string
 	3: (otu) a string
 
-
 =end text
 
 
 
 =item Description
-
 
 
 =back
@@ -331,8 +314,7 @@ sub annotate_proteins
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
 	my $msg = "Invalid arguments passed to annotate_proteins:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'annotate_proteins');
+	die $msg;
     }
 
     my $ctx = $Bio::KBase::KmerAnnotationByFigfam::Service::CallContext;
@@ -363,13 +345,10 @@ sub annotate_proteins
     (ref($hits) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"hits\" (value was \"$hits\")");
     if (@_bad_returns) {
 	my $msg = "Invalid returns passed to annotate_proteins:\n" . join("", map { "\t$_\n" } @_bad_returns);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'annotate_proteins');
+	die $msg;
     }
     return($hits);
 }
-
-
 
 
 =head2 annotate_proteins_fasta
@@ -377,6 +356,7 @@ sub annotate_proteins
   $hits = $obj->annotate_proteins_fasta($protein_fasta, $params)
 
 =over 4
+
 
 =item Parameter and return types
 
@@ -410,7 +390,6 @@ hit_detail is a reference to a list containing 4 items:
 	1: (oligo) a string
 	2: (prot_function) a string
 	3: (otu) a string
-
 </pre>
 
 =end html
@@ -445,13 +424,11 @@ hit_detail is a reference to a list containing 4 items:
 	2: (prot_function) a string
 	3: (otu) a string
 
-
 =end text
 
 
 
 =item Description
-
 
 
 =back
@@ -468,8 +445,7 @@ sub annotate_proteins_fasta
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
 	my $msg = "Invalid arguments passed to annotate_proteins_fasta:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'annotate_proteins_fasta');
+	die $msg;
     }
 
     my $ctx = $Bio::KBase::KmerAnnotationByFigfam::Service::CallContext;
@@ -480,13 +456,10 @@ sub annotate_proteins_fasta
     (ref($hits) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"hits\" (value was \"$hits\")");
     if (@_bad_returns) {
 	my $msg = "Invalid returns passed to annotate_proteins_fasta:\n" . join("", map { "\t$_\n" } @_bad_returns);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'annotate_proteins_fasta');
+	die $msg;
     }
     return($hits);
 }
-
-
 
 
 =head2 call_genes_in_dna
@@ -494,6 +467,7 @@ sub annotate_proteins_fasta
   $hits = $obj->call_genes_in_dna($dna, $params)
 
 =over 4
+
 
 =item Parameter and return types
 
@@ -523,7 +497,6 @@ dna_hit is a reference to a list containing 6 items:
 	3: (end) an int
 	4: (protein_function) a string
 	5: (otu) a string
-
 </pre>
 
 =end html
@@ -554,13 +527,11 @@ dna_hit is a reference to a list containing 6 items:
 	4: (protein_function) a string
 	5: (otu) a string
 
-
 =end text
 
 
 
 =item Description
-
 
 
 =back
@@ -577,8 +548,7 @@ sub call_genes_in_dna
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
 	my $msg = "Invalid arguments passed to call_genes_in_dna:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'call_genes_in_dna');
+	die $msg;
     }
 
     my $ctx = $Bio::KBase::KmerAnnotationByFigfam::Service::CallContext;
@@ -615,13 +585,10 @@ sub call_genes_in_dna
     (ref($hits) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"hits\" (value was \"$hits\")");
     if (@_bad_returns) {
 	my $msg = "Invalid returns passed to call_genes_in_dna:\n" . join("", map { "\t$_\n" } @_bad_returns);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'call_genes_in_dna');
+	die $msg;
     }
     return($hits);
 }
-
-
 
 
 =head2 estimate_closest_genomes
@@ -629,6 +596,7 @@ sub call_genes_in_dna
   $output = $obj->estimate_closest_genomes($proteins, $dataset_name)
 
 =over 4
+
 
 =item Parameter and return types
 
@@ -644,7 +612,6 @@ $output is a reference to a list where each element is a reference to a list con
 	0: (genome_id) a string
 	1: (score) an int
 	2: (genome_name) a string
-
 </pre>
 
 =end html
@@ -661,13 +628,11 @@ $output is a reference to a list where each element is a reference to a list con
 	1: (score) an int
 	2: (genome_name) a string
 
-
 =end text
 
 
 
 =item Description
-
 
 
 =back
@@ -684,8 +649,7 @@ sub estimate_closest_genomes
     (!ref($dataset_name)) or push(@_bad_arguments, "Invalid type for argument \"dataset_name\" (value was \"$dataset_name\")");
     if (@_bad_arguments) {
 	my $msg = "Invalid arguments passed to estimate_closest_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'estimate_closest_genomes');
+	die $msg;
     }
 
     my $ctx = $Bio::KBase::KmerAnnotationByFigfam::Service::CallContext;
@@ -708,11 +672,11 @@ sub estimate_closest_genomes
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
 	my $msg = "Invalid returns passed to estimate_closest_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'estimate_closest_genomes');
+	die $msg;
     }
     return($output);
 }
+
 
 
 
@@ -751,6 +715,8 @@ sub version {
     return $VERSION;
 }
 
+
+
 =head1 TYPES
 
 
@@ -758,7 +724,6 @@ sub version {
 =head2 kmer_annotation_figfam_parameters
 
 =over 4
-
 
 
 =item Definition
@@ -808,7 +773,6 @@ max_gap has a value which is an int
 =over 4
 
 
-
 =item Definition
 
 =begin html
@@ -842,7 +806,6 @@ a reference to a list containing 4 items:
 =head2 hit
 
 =over 4
-
 
 
 =item Definition
@@ -886,7 +849,6 @@ a reference to a list containing 7 items:
 =over 4
 
 
-
 =item Definition
 
 =begin html
@@ -918,7 +880,6 @@ a reference to a list containing 6 items:
 =end text
 
 =back
-
 
 
 =cut

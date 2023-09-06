@@ -1,11 +1,10 @@
 package Bio::KBase::KmerAnnotationByFigfam::Client;
 
-use JSON::RPC::Legacy::Client;
 use POSIX;
 use strict;
 use Data::Dumper;
 use URI;
-use Bio::KBase::Exceptions;
+
 my $get_time = sub { time, 0 };
 eval {
     require Time::HiRes;
@@ -13,10 +12,6 @@ eval {
 };
 
 
-# Client version should match Impl version
-# This is a Semantic Version number,
-# http://semver.org
-our $VERSION = "0.1.0";
 
 =head1 NAME
 
@@ -29,6 +24,7 @@ Bio::KBase::KmerAnnotationByFigfam::Client
 
 
 =cut
+
 
 sub new
 {
@@ -82,8 +78,8 @@ sub new
     my $ua = $self->{client}->ua;	 
     my $timeout = $ENV{CDMI_TIMEOUT} || (30 * 60);	 
     $ua->timeout($timeout);
+    $ua->agent("Bio::KBase::KmerAnnotationByFigfam::Client UserAgent");
     bless $self, $class;
-    #    $self->_validate_version();
     return $self;
 }
 
@@ -130,8 +126,7 @@ sub get_dataset_names
 
     if ((my $n = @args) != 0)
     {
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function get_dataset_names (received $n, expecting 0)");
+        die "Invalid argument count for function get_dataset_names (received $n, expecting 0)";
     }
 
     my $result = $self->{client}->call($self->{url}, $self->{headers}, {
@@ -139,20 +134,15 @@ sub get_dataset_names
 	params => \@args,
     });
     if ($result) {
-	if ($result->is_error) {
-	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{error}->{code},
-					       method_name => 'get_dataset_names',
-					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
-					      );
+	if ($result->{error}) {
+	    my $msg = $result->{error}->{error} || $result->{error}->{message};
+	    $msg =  $self->{client}->json->encode($msg) if ref($msg);
+	    die "Error $result->{error}->{code} invoking get_dataset_names:\n$msg\n";
 	} else {
-	    return wantarray ? @{$result->result} : $result->result->[0];
+	    return wantarray ? @{$result->{result}} : $result->{result}->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method get_dataset_names",
-					    status_line => $self->{client}->status_line,
-					    method_name => 'get_dataset_names',
-				       );
+	die "Error invoking method get_dataset_names: " .  $self->{client}->status_line;
     }
 }
 
@@ -198,8 +188,7 @@ sub get_default_dataset_name
 
     if ((my $n = @args) != 0)
     {
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function get_default_dataset_name (received $n, expecting 0)");
+        die "Invalid argument count for function get_default_dataset_name (received $n, expecting 0)";
     }
 
     my $result = $self->{client}->call($self->{url}, $self->{headers}, {
@@ -207,20 +196,15 @@ sub get_default_dataset_name
 	params => \@args,
     });
     if ($result) {
-	if ($result->is_error) {
-	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{error}->{code},
-					       method_name => 'get_default_dataset_name',
-					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
-					      );
+	if ($result->{error}) {
+	    my $msg = $result->{error}->{error} || $result->{error}->{message};
+	    $msg =  $self->{client}->json->encode($msg) if ref($msg);
+	    die "Error $result->{error}->{code} invoking get_default_dataset_name:\n$msg\n";
 	} else {
-	    return wantarray ? @{$result->result} : $result->result->[0];
+	    return wantarray ? @{$result->{result}} : $result->{result}->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method get_default_dataset_name",
-					    status_line => $self->{client}->status_line,
-					    method_name => 'get_default_dataset_name',
-				       );
+	die "Error invoking method get_default_dataset_name: " .  $self->{client}->status_line;
     }
 }
 
@@ -322,8 +306,7 @@ sub annotate_proteins
 
     if ((my $n = @args) != 2)
     {
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function annotate_proteins (received $n, expecting 2)");
+        die "Invalid argument count for function annotate_proteins (received $n, expecting 2)";
     }
     {
 	my($proteins, $params) = @args;
@@ -333,8 +316,7 @@ sub annotate_proteins
         (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 2 \"params\" (value was \"$params\")");
         if (@_bad_arguments) {
 	    my $msg = "Invalid arguments passed to annotate_proteins:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'annotate_proteins');
+	    die $msg;
 	}
     }
 
@@ -343,20 +325,15 @@ sub annotate_proteins
 	params => \@args,
     });
     if ($result) {
-	if ($result->is_error) {
-	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{error}->{code},
-					       method_name => 'annotate_proteins',
-					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
-					      );
+	if ($result->{error}) {
+	    my $msg = $result->{error}->{error} || $result->{error}->{message};
+	    $msg =  $self->{client}->json->encode($msg) if ref($msg);
+	    die "Error $result->{error}->{code} invoking annotate_proteins:\n$msg\n";
 	} else {
-	    return wantarray ? @{$result->result} : $result->result->[0];
+	    return wantarray ? @{$result->{result}} : $result->{result}->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method annotate_proteins",
-					    status_line => $self->{client}->status_line,
-					    method_name => 'annotate_proteins',
-				       );
+	die "Error invoking method annotate_proteins: " .  $self->{client}->status_line;
     }
 }
 
@@ -454,8 +431,7 @@ sub annotate_proteins_fasta
 
     if ((my $n = @args) != 2)
     {
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function annotate_proteins_fasta (received $n, expecting 2)");
+        die "Invalid argument count for function annotate_proteins_fasta (received $n, expecting 2)";
     }
     {
 	my($protein_fasta, $params) = @args;
@@ -465,8 +441,7 @@ sub annotate_proteins_fasta
         (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 2 \"params\" (value was \"$params\")");
         if (@_bad_arguments) {
 	    my $msg = "Invalid arguments passed to annotate_proteins_fasta:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'annotate_proteins_fasta');
+	    die $msg;
 	}
     }
 
@@ -475,20 +450,15 @@ sub annotate_proteins_fasta
 	params => \@args,
     });
     if ($result) {
-	if ($result->is_error) {
-	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{error}->{code},
-					       method_name => 'annotate_proteins_fasta',
-					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
-					      );
+	if ($result->{error}) {
+	    my $msg = $result->{error}->{error} || $result->{error}->{message};
+	    $msg =  $self->{client}->json->encode($msg) if ref($msg);
+	    die "Error $result->{error}->{code} invoking annotate_proteins_fasta:\n$msg\n";
 	} else {
-	    return wantarray ? @{$result->result} : $result->result->[0];
+	    return wantarray ? @{$result->{result}} : $result->{result}->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method annotate_proteins_fasta",
-					    status_line => $self->{client}->status_line,
-					    method_name => 'annotate_proteins_fasta',
-				       );
+	die "Error invoking method annotate_proteins_fasta: " .  $self->{client}->status_line;
     }
 }
 
@@ -578,8 +548,7 @@ sub call_genes_in_dna
 
     if ((my $n = @args) != 2)
     {
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function call_genes_in_dna (received $n, expecting 2)");
+        die "Invalid argument count for function call_genes_in_dna (received $n, expecting 2)";
     }
     {
 	my($dna, $params) = @args;
@@ -589,8 +558,7 @@ sub call_genes_in_dna
         (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 2 \"params\" (value was \"$params\")");
         if (@_bad_arguments) {
 	    my $msg = "Invalid arguments passed to call_genes_in_dna:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'call_genes_in_dna');
+	    die $msg;
 	}
     }
 
@@ -599,20 +567,15 @@ sub call_genes_in_dna
 	params => \@args,
     });
     if ($result) {
-	if ($result->is_error) {
-	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{error}->{code},
-					       method_name => 'call_genes_in_dna',
-					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
-					      );
+	if ($result->{error}) {
+	    my $msg = $result->{error}->{error} || $result->{error}->{message};
+	    $msg =  $self->{client}->json->encode($msg) if ref($msg);
+	    die "Error $result->{error}->{code} invoking call_genes_in_dna:\n$msg\n";
 	} else {
-	    return wantarray ? @{$result->result} : $result->result->[0];
+	    return wantarray ? @{$result->{result}} : $result->{result}->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method call_genes_in_dna",
-					    status_line => $self->{client}->status_line,
-					    method_name => 'call_genes_in_dna',
-				       );
+	die "Error invoking method call_genes_in_dna: " .  $self->{client}->status_line;
     }
 }
 
@@ -674,8 +637,7 @@ sub estimate_closest_genomes
 
     if ((my $n = @args) != 2)
     {
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function estimate_closest_genomes (received $n, expecting 2)");
+        die "Invalid argument count for function estimate_closest_genomes (received $n, expecting 2)";
     }
     {
 	my($proteins, $dataset_name) = @args;
@@ -685,8 +647,7 @@ sub estimate_closest_genomes
         (!ref($dataset_name)) or push(@_bad_arguments, "Invalid type for argument 2 \"dataset_name\" (value was \"$dataset_name\")");
         if (@_bad_arguments) {
 	    my $msg = "Invalid arguments passed to estimate_closest_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'estimate_closest_genomes');
+	    die $msg;
 	}
     }
 
@@ -695,77 +656,21 @@ sub estimate_closest_genomes
 	params => \@args,
     });
     if ($result) {
-	if ($result->is_error) {
-	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{error}->{code},
-					       method_name => 'estimate_closest_genomes',
-					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
-					      );
+	if ($result->{error}) {
+	    my $msg = $result->{error}->{error} || $result->{error}->{message};
+	    $msg =  $self->{client}->json->encode($msg) if ref($msg);
+	    die "Error $result->{error}->{code} invoking estimate_closest_genomes:\n$msg\n";
 	} else {
-	    return wantarray ? @{$result->result} : $result->result->[0];
+	    return wantarray ? @{$result->{result}} : $result->{result}->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method estimate_closest_genomes",
-					    status_line => $self->{client}->status_line,
-					    method_name => 'estimate_closest_genomes',
-				       );
+	die "Error invoking method estimate_closest_genomes: " .  $self->{client}->status_line;
     }
 }
 
 
 
-sub version {
-    my ($self) = @_;
-    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
-        method => "KmerAnnotationByFigfam.version",
-        params => [],
-    });
-    if ($result) {
-        if ($result->is_error) {
-            Bio::KBase::Exceptions::JSONRPC->throw(
-                error => $result->error_message,
-                code => $result->content->{code},
-                method_name => 'estimate_closest_genomes',
-            );
-        } else {
-            return wantarray ? @{$result->result} : $result->result->[0];
-        }
-    } else {
-        Bio::KBase::Exceptions::HTTP->throw(
-            error => "Error invoking method estimate_closest_genomes",
-            status_line => $self->{client}->status_line,
-            method_name => 'estimate_closest_genomes',
-        );
-    }
-}
 
-sub _validate_version {
-    my ($self) = @_;
-    my $svr_version = $self->version();
-    my $client_version = $VERSION;
-    my ($cMajor, $cMinor) = split(/\./, $client_version);
-    my ($sMajor, $sMinor) = split(/\./, $svr_version);
-    if ($sMajor != $cMajor) {
-        Bio::KBase::Exceptions::ClientServerIncompatible->throw(
-            error => "Major version numbers differ.",
-            server_version => $svr_version,
-            client_version => $client_version
-        );
-    }
-    if ($sMinor < $cMinor) {
-        Bio::KBase::Exceptions::ClientServerIncompatible->throw(
-            error => "Client minor version greater than Server minor version.",
-            server_version => $svr_version,
-            client_version => $client_version
-        );
-    }
-    if ($sMinor > $cMinor) {
-        warn "New client version available for Bio::KBase::KmerAnnotationByFigfam::Client\n";
-    }
-    if ($sMajor == 0) {
-        warn "Bio::KBase::KmerAnnotationByFigfam::Client version is $svr_version. API subject to change.\n";
-    }
-}
 
 =head1 TYPES
 
@@ -940,13 +845,35 @@ a reference to a list containing 6 items:
 =cut
 
 package Bio::KBase::KmerAnnotationByFigfam::Client::RpcClient;
-use base 'JSON::RPC::Legacy::Client';
 use POSIX;
 use strict;
+use LWP::UserAgent;
+use JSON::XS;
 
-#
-# Override JSON::RPC::Client::call because it doesn't handle error returns properly.
-#
+BEGIN {
+    for my $method (qw/uri ua json content_type version id allow_call status_line/) {
+	eval qq|
+	    sub $method {
+		\$_[0]->{$method} = \$_[1] if defined \$_[1];
+		\$_[0]->{$method};
+	    }
+	    |;
+	}
+    }
+
+sub new
+{
+    my($class) = @_;
+
+    my $ua = LWP::UserAgent->new();
+    my $json = JSON::XS->new->allow_nonref->utf8;
+    
+    my $self = {
+	ua => $ua,
+	json => $json,
+    };
+    return bless $self, $class;
+}
 
 sub call {
     my ($self, $uri, $headers, $obj) = @_;
@@ -968,25 +895,33 @@ sub call {
 
     $self->status_line($result->status_line);
 
-    if ($result->is_success) {
+    if ($result->is_success || $result->content_type eq 'application/json') {
 
-        return unless($result->content); # notification?
+	my $txt = $result->content;
 
-        if ($service) {
-            return JSON::RPC::ServiceObject->new($result, $self->json);
-        }
+        return unless($txt); # notification?
 
-        return JSON::RPC::Legacy::ReturnObject->new($result, $self->json);
-    }
-    elsif ($result->content_type eq 'application/json')
-    {
-        return JSON::RPC::Legacy::ReturnObject->new($result, $self->json);
+	my $obj = eval { $self->json->decode($txt); };
+
+	if (!$obj)
+	{
+	    die "Error parsing result: $@";
+	}
+
+	return $obj;
     }
     else {
         return;
     }
 }
 
+sub _get {
+    my ($self, $uri) = @_;
+    $self->ua->get(
+		   $uri,
+		   Accept         => 'application/json',
+		  );
+}
 
 sub _post {
     my ($self, $uri, $headers, $obj) = @_;
